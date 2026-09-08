@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="丛云图床 - 轻量、快速的图片托管服务">
+  <title>丛云图床</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <div class="background" id="background" aria-hidden="true"></div>
+  <header class="topbar glass">
+    <a class="brand" href="/" aria-label="返回首页">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8.2 24.5h15.6a6.2 6.2 0 0 0 .7-12.36A9.1 9.1 0 0 0 7.1 10.2 7.2 7.2 0 0 0 8.2 24.5Z"/></svg></span>
+      <span id="siteName">丛云图床</span>
+    </a>
+    <nav class="nav-actions" aria-label="账户操作">
+      <button class="icon-button" id="themeButton" type="button" aria-label="切换深浅色模式">
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+      </button>
+      <button class="button ghost" id="myImagesButton" type="button" hidden>我的图片</button>
+      <button class="button ghost" id="adminButton" type="button" hidden>管理后台</button>
+      <button class="button primary" id="accountButton" type="button">登录</button>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <section class="upload-card glass" aria-labelledby="uploadTitle">
+      <div class="section-heading">
+        <div><p class="eyebrow">UPLOAD</p><h1 id="uploadTitle">上传图片</h1><p id="uploadHint">拖入、粘贴或选择图片，上传后自动转换为 WebP</p></div>
+        <label class="privacy-toggle"><input id="privateToggle" type="checkbox"><span class="switch"></span><span><b>隐私图片</b><small>仅持有链接的人可访问</small></span></label>
+      </div>
+
+      <div class="upload-tabs" role="tablist">
+        <button class="upload-tab active" role="tab" aria-selected="true" data-tab="local" type="button">本地上传</button>
+        <button class="upload-tab" role="tab" aria-selected="false" data-tab="remote" type="button">URL 上传</button>
+      </div>
+      <div id="localPanel" role="tabpanel">
+        <label class="dropzone" id="dropzone" tabindex="0">
+          <input id="fileInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
+          <span class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></span>
+          <strong>把图片拖到这里</strong>
+          <span>或点击选择，支持 Ctrl+V 直接粘贴</span>
+          <small id="policyText">正在读取上传限制…</small>
+        </label>
+      </div>
+      <div id="remotePanel" role="tabpanel" hidden>
+        <form class="remote-form" id="remoteForm">
+          <label for="remoteURL">图片地址</label>
+          <div class="field-row"><input id="remoteURL" type="url" required placeholder="https://example.com/image.jpg" autocomplete="url"><button class="button primary" type="submit">获取并上传</button></div>
+          <p>由服务器安全拉取图片，同样应用格式、大小与空间限制。</p>
+        </form>
+      </div>
+      <div class="queue" id="queue" aria-live="polite"></div>
+    </section>
+
+    <section class="results-section" id="resultsSection" hidden aria-labelledby="resultsTitle">
+      <div class="section-title-row"><div><p class="eyebrow">READY</p><h2 id="resultsTitle">上传完成</h2></div><button class="button ghost" id="copyAllButton" type="button">复制全部 Markdown</button></div>
+      <div class="result-list" id="resultList"></div>
+    </section>
+
+    <section class="gallery-section" id="gallerySection" aria-labelledby="galleryTitle">
+      <div class="section-title-row"><div><p class="eyebrow">GALLERY</p><h2 id="galleryTitle">图片广场</h2></div><button class="button ghost" id="refreshGallery" type="button">刷新</button></div>
+      <div class="gallery" id="gallery"><div class="empty-state">正在加载图片…</div></div>
+      <button class="button more" id="loadMore" type="button" hidden>加载更多</button>
+    </section>
+  </main>
+
+  <dialog class="modal" id="authDialog">
+    <form method="dialog" class="modal-close-form"><button class="icon-button close" aria-label="关闭">×</button></form>
+    <div class="modal-content auth-content">
+      <p class="eyebrow">ACCOUNT</p><h2 id="authTitle">登录</h2>
+      <form id="authForm" class="stack-form">
+        <label>用户名<input id="authUsername" required minlength="3" maxlength="32" autocomplete="username"></label>
+        <label>密码<input id="authPassword" type="password" required minlength="8" maxlength="128" autocomplete="current-password"></label>
+        <button class="button primary wide" id="authSubmit" type="submit">登录</button>
+      </form>
+      <button class="text-button" id="authSwitch" type="button">没有账户？立即注册</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal panel-modal" id="libraryDialog">
+    <form method="dialog" class="modal-close-form"><button class="icon-button close" aria-label="关闭">×</button></form>
+    <div class="modal-content"><p class="eyebrow">LIBRARY</p><h2>我的图片</h2><div class="library-grid" id="libraryGrid"></div></div>
+  </dialog>
+
+  <dialog class="modal admin-modal" id="adminDialog">
+    <form method="dialog" class="modal-close-form"><button class="icon-button close" aria-label="关闭">×</button></form>
+    <div class="admin-layout">
+      <aside class="admin-nav"><div><p class="eyebrow">CONSOLE</p><h2>管理后台</h2></div><button class="admin-tab active" data-admin-tab="overview" type="button">概览</button><button class="admin-tab" data-admin-tab="settings" type="button">网站设置</button><button class="admin-tab" data-admin-tab="users" type="button">用户权限</button><button class="admin-tab" data-admin-tab="storages" type="button">存储管理</button></aside>
+      <div class="admin-content">
+        <section class="admin-pane" id="admin-overview"><h3>运行概览</h3><div class="stats-grid" id="statsGrid"></div><h3>存储使用</h3><div id="storageStats" class="storage-stats"></div></section>
+        <section class="admin-pane" id="admin-settings" hidden><h3>网站设置</h3><form id="settingsForm" class="settings-grid">
+          <label>网站名称<input name="site_name" required></label><label>网站域名<input name="site_domain" type="url" placeholder="https://img.example.com"></label>
+          <label class="span-2">背景图地址<input name="background_url" type="url" placeholder="https://…"></label>
+          <label>背景透明度 <output id="opacityOutput">18%</output><input name="background_opacity" type="range" min="0" max="100"></label>
+          <label>背景对齐<select name="background_position"><option value="center">居中</option><option value="top">顶部</option><option value="bottom">底部</option><option value="left">左侧</option><option value="right">右侧</option></select></label>
+          <label>主题色<input name="theme_color" type="color"></label><label>WebP 压缩质量<input name="webp_quality" type="number" min="1" max="100"></label>
+          <label>游客单图上限（MB）<input name="guest_max_file_size_mb" type="number" min="0.01" step="0.01"></label><label>游客图片过期（小时）<input name="guest_expiry_hours" type="number" min="1"></label>
+          <fieldset class="span-2"><legend>游客允许类型</legend><div class="checks" id="guestTypeChecks"></div></fieldset>
+          <div class="span-2 switch-list"><label><input name="registration_enabled" type="checkbox"><span>开放用户注册</span></label><label><input name="guest_upload_enabled" type="checkbox"><span>允许游客上传</span></label><label><input name="gallery_enabled" type="checkbox"><span>开启图片广场</span></label></div>
+          <button class="button primary" type="submit">保存设置</button>
+        </form></section>
+        <section class="admin-pane" id="admin-users" hidden><div class="pane-title"><h3>用户权限</h3><span>容量填 0 表示不限制</span></div><div class="table-wrap"><table><thead><tr><th>用户</th><th>角色</th><th>单图上限</th><th>总空间</th><th>已用</th><th>图片类型</th><th></th></tr></thead><tbody id="usersBody"></tbody></table></div></section>
+        <section class="admin-pane" id="admin-storages" hidden><div class="pane-title"><h3>存储管理</h3><button class="button primary" id="addStorageButton" type="button">添加存储</button></div><div id="storageList" class="storage-list"></div></section>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="storageDialog">
+    <form method="dialog" class="modal-close-form"><button class="icon-button close" aria-label="关闭">×</button></form>
+    <div class="modal-content"><p class="eyebrow">STORAGE</p><h2 id="storageTitle">添加存储</h2><form id="storageForm" class="stack-form">
+      <input name="id" type="hidden"><label>名称<input name="name" required></label><label>类型<select name="type"><option value="s3">S3 兼容存储</option><option value="webdav">WebDAV</option><option value="local">本机存储</option></select></label><div id="storageFields"></div>
+      <div class="switch-list"><label><input name="is_default" type="checkbox"><span>设为默认存储</span></label><label><input name="enabled" type="checkbox" checked><span>启用</span></label></div><button class="button primary wide" type="submit">保存存储</button>
+    </form></div>
+  </dialog>
+
+  <div class="toast-stack" id="toasts" aria-live="polite"></div>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

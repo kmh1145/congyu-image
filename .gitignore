@@ -1,0 +1,10 @@
+.env
+data/
+*.db
+*.db-shm
+*.db-wal
+congyu-image
+coverage.out
+.idea/
+.vscode/
+.tools/
