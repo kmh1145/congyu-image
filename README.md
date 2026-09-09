@@ -20,30 +20,29 @@
 ```bash
 git clone https://github.com/kmh1145/congyu-image.git
 cd congyu-image
-cp .env.example .env
 ```
 
-编辑 `.env`，至少修改 `ADMIN_PASSWORD`。使用 HTTPS 域名时保持 `COOKIE_SECURE=true`；仅在本地 HTTP 测试时设为 `false`。
+所有部署配置均已合并在 `docker-compose.yml` 中，不需要创建 `.env` 文件。首次部署前请编辑 `environment` 部分：
+
+- 将 `ADMIN_PASSWORD` 改为强密码。
+- 将 `BASE_URL` 改为实际访问地址，例如 `https://img.example.com`。
+- 使用 HTTPS 域名时将 `COOKIE_SECURE` 改为 `"true"`；仅在 HTTP 环境中保留 `"false"`。
 
 ```bash
 docker compose up -d
 ```
 
-访问 `http://服务器地址:8080`。数据默认保存在 Docker 命名卷 `congyu-image-data` 中，命名卷会使用镜像内预设的正确权限，避免非 root 进程因宿主机目录权限而无法启动。首次启动会创建管理员；如果未提供 `ADMIN_PASSWORD`，服务会在日志中输出随机初始密码一次：
+访问 `http://服务器地址:8080`。数据默认保存在 Docker 命名卷 `congyu-image-data` 中，命名卷会使用镜像内预设的正确权限，避免非 root 进程因宿主机目录权限而无法启动。首次启动会按照 Compose 中的配置创建管理员。
 
-```bash
-docker compose logs congyu-image
-```
+### Compose 配置
 
-### 环境变量
-
-| 变量 | 默认值 | 说明 |
+| 变量 | Compose 初始值 | 说明 |
 | --- | --- | --- |
 | `LISTEN_ADDR` | `:8080` | 服务监听地址 |
 | `DATA_DIR` | `/data` | SQLite 与本机图片目录 |
-| `BASE_URL` | 空 | 生成外链的基础地址；后台“网站域名”优先级更高 |
+| `BASE_URL` | `http://localhost:8080` | 生成外链的基础地址；后台“网站域名”优先级更高 |
 | `ADMIN_USERNAME` | `admin` | 首次启动创建的管理员用户名 |
-| `ADMIN_PASSWORD` | 随机生成 | 首次启动管理员密码 |
+| `ADMIN_PASSWORD` | `change-this-password` | 首次启动管理员密码，部署前必须修改 |
 | `COOKIE_SECURE` | `false` | HTTPS 部署时应设为 `true` |
 | `TZ` | `Asia/Shanghai` | 容器时区 |
 
