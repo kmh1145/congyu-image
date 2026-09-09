@@ -29,7 +29,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-访问 `http://服务器地址:8080`。数据默认保存在当前目录的 `data/` 中。首次启动会创建管理员；如果未提供 `ADMIN_PASSWORD`，服务会在日志中输出随机初始密码一次：
+访问 `http://服务器地址:8080`。数据默认保存在 Docker 命名卷 `congyu-image-data` 中，命名卷会使用镜像内预设的正确权限，避免非 root 进程因宿主机目录权限而无法启动。首次启动会创建管理员；如果未提供 `ADMIN_PASSWORD`，服务会在日志中输出随机初始密码一次：
 
 ```bash
 docker compose logs congyu-image
@@ -48,6 +48,29 @@ docker compose logs congyu-image
 | `TZ` | `Asia/Shanghai` | 容器时区 |
 
 推荐在 Caddy、Nginx 或 Traefik 后运行并启用 HTTPS。反向代理需要保留 `Host`，并传递 `X-Forwarded-Proto`。
+
+### 使用宿主机目录（可选）
+
+默认命名卷最省心。如果需要将数据直接保存在当前目录，请先创建目录并赋予容器用户（UID/GID `10001`）访问权限：
+
+```bash
+sudo install -d -m 0750 -o 10001 -g 10001 ./data
+```
+
+然后将 `docker-compose.yml` 中的卷改为：
+
+```yaml
+volumes:
+  - ./data:/data
+```
+
+如果旧版部署出现 `mkdir /data/images: permission denied`，可更新仓库并重新创建容器，默认配置会自动改用命名卷：
+
+```bash
+git pull
+docker compose pull
+docker compose up -d --force-recreate
+```
 
 ## 存储配置
 
@@ -88,7 +111,14 @@ ghcr.io/kmh1145/congyu-image:latest
 
 ## 备份与升级
 
-停止容器后备份整个 `data/` 目录即可同时保存数据库和本机图片。升级前建议先备份，然后执行：
+默认命名卷可用以下命令备份数据库和本机图片：
+
+```bash
+docker run --rm -v congyu-image-data:/data -v "$PWD:/backup" alpine \
+  tar czf /backup/congyu-image-backup.tar.gz -C /data .
+```
+
+使用宿主机目录挂载时，停止容器后备份整个 `data/` 目录即可。升级前建议先备份，然后执行：
 
 ```bash
 docker compose pull

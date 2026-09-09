@@ -50,7 +50,8 @@ func envOr(key, fallback string) string {
 func main() {
 	cfg := loadConfig()
 	if err := os.MkdirAll(filepath.Join(cfg.DataDir, "images"), 0o750); err != nil {
-		panic(err)
+		slog.Error("无法创建数据目录，请检查挂载卷权限", "path", cfg.DataDir, "error", err)
+		os.Exit(1)
 	}
 	db, err := openDatabase(filepath.Join(cfg.DataDir, "congyu.db"))
 	if err != nil {
