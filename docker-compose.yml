@@ -1,8 +1,33 @@
 services:
+  congyu-data-init:
+    image: alpine:3.21
+    container_name: congyu-image-data-init
+    user: "0:0"
+    network_mode: none
+    restart: "no"
+    volumes:
+      - ./data:/data
+    command:
+      - sh
+      - -c
+      - mkdir -p /data/images && chown -R 10001:10001 /data && chmod -R u+rwX /data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+
   congyu-image:
     image: ghcr.io/kmh1145/congyu-image:latest
     container_name: congyu-image
+    pull_policy: always
     restart: unless-stopped
+    depends_on:
+      congyu-data-init:
+        condition: service_completed_successfully
     ports:
       - "8080:8080"
     environment:
@@ -15,12 +40,8 @@ services:
       COOKIE_SECURE: "false"
       TZ: "Asia/Shanghai"
     volumes:
-      - congyu-data:/data
+      - ./data:/data
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-
-volumes:
-  congyu-data:
-    name: congyu-image-data

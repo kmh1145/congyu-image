@@ -17,9 +17,12 @@
 
 ## Docker Compose 部署
 
+只下载一个 Compose 文件即可部署：
+
 ```bash
-git clone https://github.com/kmh1145/congyu-image.git
-cd congyu-image
+mkdir congyu-image && cd congyu-image
+curl -fsSLo docker-compose.yml \
+  https://raw.githubusercontent.com/kmh1145/congyu-image/master/docker-compose.yml
 ```
 
 所有部署配置均已合并在 `docker-compose.yml` 中，不需要创建 `.env` 文件。首次部署前请编辑 `environment` 部分：
@@ -32,7 +35,15 @@ cd congyu-image
 docker compose up -d
 ```
 
-访问 `http://服务器地址:8080`。数据默认保存在 Docker 命名卷 `congyu-image-data` 中，命名卷会使用镜像内预设的正确权限，避免非 root 进程因宿主机目录权限而无法启动。首次启动会按照 Compose 中的配置创建管理员。
+首次执行时，Compose 会自动在 `docker-compose.yml` 所在目录创建 `data/`，并通过一次性初始化容器设置正确权限，然后启动图床。访问 `http://服务器地址:8080`，首次启动会按照 Compose 中的配置创建管理员。
+
+也可以克隆完整仓库后部署：
+
+```bash
+git clone https://github.com/kmh1145/congyu-image.git
+cd congyu-image
+docker compose up -d
+```
 
 ### Compose 配置
 
@@ -48,27 +59,15 @@ docker compose up -d
 
 推荐在 Caddy、Nginx 或 Traefik 后运行并启用 HTTPS。反向代理需要保留 `Host`，并传递 `X-Forwarded-Proto`。
 
-### 使用宿主机目录（可选）
+### 数据目录与迁移
 
-默认命名卷最省心。如果需要将数据直接保存在当前目录，请先创建目录并赋予容器用户（UID/GID `10001`）访问权限：
+默认使用 `./data:/data` 宿主机目录挂载。`congyu-data-init` 服务只负责创建目录并调整权限，完成后会正常退出；主服务仅在初始化成功后启动。
 
-```bash
-sudo install -d -m 0750 -o 10001 -g 10001 ./data
-```
-
-然后将 `docker-compose.yml` 中的卷改为：
-
-```yaml
-volumes:
-  - ./data:/data
-```
-
-如果旧版部署出现 `mkdir /data/images: permission denied`，可更新仓库并重新创建容器，默认配置会自动改用命名卷：
+迁移时停止服务，复制 `docker-compose.yml` 和整个 `data/` 目录到新服务器，然后执行 `docker compose up -d` 即可。如果复制后文件所有者发生变化，可重新运行初始化服务：
 
 ```bash
-git pull
-docker compose pull
-docker compose up -d --force-recreate
+docker compose run --rm congyu-data-init
+docker compose up -d
 ```
 
 ## 存储配置
@@ -110,18 +109,18 @@ ghcr.io/kmh1145/congyu-image:latest
 
 ## 备份与升级
 
-默认命名卷可用以下命令备份数据库和本机图片：
+停止容器后，直接备份 Compose 当前目录下的 `data/` 即可保存数据库和本机图片：
 
 ```bash
-docker run --rm -v congyu-image-data:/data -v "$PWD:/backup" alpine \
-  tar czf /backup/congyu-image-backup.tar.gz -C /data .
+docker compose stop congyu-image
+tar czf congyu-image-backup.tar.gz data/
 ```
 
-使用宿主机目录挂载时，停止容器后备份整个 `data/` 目录即可。升级前建议先备份，然后执行：
+升级前建议先备份，然后执行：
 
 ```bash
 docker compose pull
-docker compose up -d
+docker compose up -d --force-recreate
 ```
 
 数据库表会在启动时自动迁移。删除图片会同步删除存储对象，且不可恢复。
