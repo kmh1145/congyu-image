@@ -29,10 +29,10 @@ services:
       congyu-data-init:
         condition: service_completed_successfully
     ports:
-      - "8080:8080"
+      - "10721:10721"
     environment:
       # 对外访问地址；使用域名时改为 https://img.example.com
-      BASE_URL: "http://localhost:8080"
+      BASE_URL: "http://localhost:10721"
       # 首次启动时创建的管理员账号，请务必修改默认密码
       ADMIN_USERNAME: "admin"
       ADMIN_PASSWORD: "change-this-password"

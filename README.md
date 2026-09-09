@@ -35,7 +35,7 @@ curl -fsSLo docker-compose.yml \
 docker compose up -d
 ```
 
-首次执行时，Compose 会自动在 `docker-compose.yml` 所在目录创建 `data/`，并通过一次性初始化容器设置正确权限，然后启动图床。访问 `http://服务器地址:8080`，首次启动会按照 Compose 中的配置创建管理员。
+首次执行时，Compose 会自动在 `docker-compose.yml` 所在目录创建 `data/`，并通过一次性初始化容器设置正确权限，然后启动图床。访问 `http://服务器地址:10721`，首次启动会按照 Compose 中的配置创建管理员。
 
 也可以克隆完整仓库后部署：
 
@@ -49,9 +49,9 @@ docker compose up -d
 
 | 变量 | Compose 初始值 | 说明 |
 | --- | --- | --- |
-| `LISTEN_ADDR` | `:8080` | 服务监听地址 |
+| `LISTEN_ADDR` | `:10721` | 服务监听地址 |
 | `DATA_DIR` | `/data` | SQLite 与本机图片目录 |
-| `BASE_URL` | `http://localhost:8080` | 生成外链的基础地址；后台“网站域名”优先级更高 |
+| `BASE_URL` | `http://localhost:10721` | 生成外链的基础地址；后台“网站域名”优先级更高 |
 | `ADMIN_USERNAME` | `admin` | 首次启动创建的管理员用户名 |
 | `ADMIN_PASSWORD` | `change-this-password` | 首次启动管理员密码，部署前必须修改 |
 | `COOKIE_SECURE` | `false` | HTTPS 部署时应设为 `true` |

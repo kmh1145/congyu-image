@@ -16,8 +16,8 @@ RUN apk add --no-cache ca-certificates tzdata libwebp-tools && \
 WORKDIR /app
 COPY --from=builder /out/congyu-image /app/congyu-image
 USER congyu
-EXPOSE 8080
+EXPOSE 10721
 VOLUME ["/data"]
-ENV LISTEN_ADDR=:8080 DATA_DIR=/data TZ=Asia/Shanghai
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
+ENV LISTEN_ADDR=:10721 DATA_DIR=/data TZ=Asia/Shanghai
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1:10721/healthz || exit 1
 ENTRYPOINT ["/app/congyu-image"]

@@ -31,7 +31,7 @@ type Config struct {
 func loadConfig() Config {
 	dataDir := envOr("DATA_DIR", "/data")
 	return Config{
-		Addr:       envOr("LISTEN_ADDR", ":8080"),
+		Addr:       envOr("LISTEN_ADDR", ":10721"),
 		DataDir:    dataDir,
 		BaseURL:    strings.TrimRight(os.Getenv("BASE_URL"), "/"),
 		AdminUser:  envOr("ADMIN_USERNAME", "admin"),
